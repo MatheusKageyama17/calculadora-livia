@@ -1,0 +1,3411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="description" content="Suite Bolsas - Ferramentas profissionais para artesãs">
+    <meta name="theme-color" content="#ec4899">
+    <title>Suite Bolsas - Lívia Xavier</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="shortcut icon" href="icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Suite Bolsas">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Suite Bolsas">
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- jsPDF para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+            color: #831843;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        body.login-active {
+            overflow: hidden;
+            height: 100vh;
+            position: fixed;
+            width: 100%;
+        }
+
+        .screen {
+            min-height: 100vh;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #mainApp {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        .menu-screen {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+        }
+
+        .menu-header {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            border-radius: 0 0 30px 30px;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .menu-logo { margin-bottom: 15px; }
+        .app-logo { width: 96px; height: 96px; object-fit: contain; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+        .menu-logo .app-logo { width: 72px; height: 72px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); }
+
+        .menu-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .menu-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            padding: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(244, 114, 182, 0.15);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .menu-card:nth-child(1)::before {
+            background: linear-gradient(90deg, #f472b6, #ec4899);
+        }
+        .menu-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #c084fc, #a855f7);
+        }
+        .menu-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #93c5fd, #60a5fa);
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(244, 114, 182, 0.25);
+            border-color: #f472b6;
+        }
+
+        .menu-card-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
+
+        .menu-card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #831843;
+            margin-bottom: 15px;
+        }
+
+        .menu-card-description {
+            color: #a21caf;
+            font-size: 1rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            max-height: 2.8rem;
+        }
+
+        .tool-screen {
+            background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+        }
+
+        .tool-header {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            padding: 25px;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.3);
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .tool-header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .tool-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            padding: 12px 25px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 25px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(244, 114, 182, 0.15);
+        }
+
+        .card h2 {
+            color: #831843;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #831843;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #f9a8d4;
+            border-radius: 12px;
+            font-size: 1rem;
+            background: #fdf2f8;
+            color: #831843;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ec4899;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #c084fc, #a855f7);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #93c5fd, #60a5fa);
+            color: white;
+        }
+
+        .material-item {
+            background: #fdf2f8;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 2px solid #f9a8d4;
+            transition: all 0.3s ease;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .material-item:hover {
+            border-color: #f472b6;
+            box-shadow: 0 4px 15px rgba(244, 114, 182, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .material-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .material-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #831843;
+            margin-bottom: 6px;
+        }
+
+        .material-field input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #f9a8d4;
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            color: #831843;
+            transition: all 0.3s ease;
+        }
+
+        .material-field input:focus {
+            outline: none;
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+
+        .material-total {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            color: #92400e;
+            text-align: center;
+            border: 2px solid #fbbf24;
+        }
+
+        .btn-remover {
+            padding: 12px 20px !important;
+            margin: 0 !important;
+            height: fit-content;
+        }
+
+        /* Responsividade para materiais */
+        @media (max-width: 768px) {
+            .material-item {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .btn-remover {
+                width: 100%;
+            }
+        }
+
+        .resultado-wrapper {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            padding: 30px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.3);
+        }
+
+        .resultado {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .resultado h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .resultado .valor {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .projeto-item {
+            background: #fdf2f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #f9a8d4;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .projeto-item:hover {
+            border-color: #ec4899;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .projeto-item.selected {
+            border-color: #ec4899;
+            background: linear-gradient(135deg, #fdf2f8, #fce7f3);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.2);
+        }
+
+        .projeto-item h3 {
+            color: #831843;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .projeto-item p {
+            color: #a21caf;
+            margin-bottom: 5px;
+        }
+
+        .projeto-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .projeto-actions button {
+            padding: 10px 20px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .month-selector button {
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .month-selector button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .month-selector input {
+            padding: 12px 20px;
+            border: 2px solid #f9a8d4;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            background: white;
+            color: #831843;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+        }
+
+        thead th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #f9a8d4;
+            transition: all 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: #fdf2f8;
+        }
+
+        tbody td {
+            padding: 18px;
+            color: #831843;
+        }
+
+        .entrada {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .saida {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .retirada {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-card.positive {
+            border-color: #22c55e;
+        }
+
+        .summary-card.negative {
+            border-color: #ef4444;
+        }
+
+        .summary-card.neutral {
+            border-color: #60a5fa;
+        }
+
+        .summary-card h3 {
+            font-size: 1rem;
+            color: #a21caf;
+            margin-bottom: 10px;
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #831843;
+        }
+
+        .month-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: white;
+            margin-bottom: 12px;
+            border-radius: 12px;
+            border-left: 5px solid;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .month-summary:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-summary.positive {
+            border-color: #22c55e;
+        }
+
+        .month-summary.negative {
+            border-color: #ef4444;
+        }
+
+        .month-name {
+            font-weight: 600;
+            color: #831843;
+            font-size: 1.1rem;
+        }
+
+        .month-balance {
+            font-weight: 700;
+            font-size: 1.3rem;
+        }
+
+        .month-balance.positive {
+            color: #22c55e;
+        }
+
+        .month-balance.negative {
+            color: #ef4444;
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+            font-weight: 600;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .auto-save-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .message-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #831843;
+            padding: 25px 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            font-size: 1.2rem;
+            z-index: 10000;
+            animation: toastIn 0.3s ease-out;
+            border: 3px solid;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .message-toast.success {
+            border-color: #22c55e;
+        }
+
+        .message-toast.error {
+            border-color: #ef4444;
+        }
+
+        .message-toast.info {
+            border-color: #60a5fa;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+
+        .dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .dialog-overlay.active {
+            display: flex;
+        }
+
+        .dialog-box {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dialog-box h2 {
+            color: #831843;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        .dialog-box p {
+            color: #a21caf;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .dialog-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+        .dialog-actions button {
+            padding: 12px 30px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dialog-actions .btn-confirm {
+            background: linear-gradient(135deg, #f87171, #ef4444);
+            color: white;
+        }
+
+        .dialog-actions .btn-cancel {
+            background: #f3f4f6;
+            color: #831843;
+        }
+
+        .dialog-actions button:hover {
+            transform: scale(1.05);
+        }
+
+        .login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #fdf2f8 0%, #fbcfe8 100%);
+            padding: 20px;
+        }
+
+        .login-card { max-width: 480px; width: 100%; text-align: center; animation: slideUp 0.5s ease-out; }
+
+        .login-logo { margin-bottom: 20px; }
+
+        .login-title { margin-bottom: 10px; }
+
+        .login-subtitle {
+            color: #a21caf;
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+
+        .login-form {
+            text-align: left;
+        }
+
+        .login-form .form-group {
+            margin-bottom: 25px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 18px;
+            border: 2px solid #f9a8d4;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            background: #fdf2f8;
+            color: #831843;
+            transition: all 0.3s ease;
+        }
+
+        .login-form input:focus {
+            outline: none;
+            border-color: #ec4899;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+        }
+
+        .login-form button {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
+        }
+
+        .login-form button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(236, 72, 153, 0.4);
+        }
+
+        .login-error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ef4444;
+            display: none;
+        }
+
+        .login-error.show {
+            display: block;
+        }
+
+        .support-link {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .support-link a {
+            color: #a855f7;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .support-link a:hover {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .backup-btn-container {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #f9a8d4;
+        }
+
+        .backup-btn-info {
+            text-align: center;
+            color: #a21caf;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .backup-btn-large {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #4ade80, #22c55e);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .backup-btn-large:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
+        }
+
+
+        /* Estilos para gráficos */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin: 30px 0;
+        }
+
+        /* Estilos para filtros */
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-container input,
+        .filter-container select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        @media (max-width: 768px) {
+            .menu-title {
+                font-size: 2rem;
+            }
+
+            .menu-subtitle {
+                font-size: 1rem;
+            }
+
+            .menu-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .tool-header h1 {
+                font-size: 1.5rem;
+            }
+
+            .back-btn {
+                position: static;
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            .resultado .valor {
+                font-size: 2rem;
+            }
+
+            .month-selector {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .month-selector button,
+            .month-selector input {
+                width: 100%;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            thead th,
+            tbody td {
+                padding: 12px 8px;
+            }
+
+            .login-card {
+                padding: 40px 30px;
+            }
+
+            .login-logo {
+                font-size: 4rem;
+            }
+
+            .login-title {
+                font-size: 2rem;
+            }
+
+            .dialog-box {
+                padding: 25px;
+            }
+
+            .dialog-actions {
+                flex-direction: column;
+            }
+
+            .dialog-actions button {
+                width: 100%;
+            }
+        }
+    
+        .resultado-hint {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 8px;
+            line-height: 1.4;
+            font-style: italic;
+        }
+    
+        .input-com-tooltip {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .input-label-pequeno {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #831843;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: #f472b6;
+            color: white;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            cursor: help;
+            font-weight: bold;
+        }
+
+        .tooltip-icon:hover {
+            background: #ec4899;
+            transform: scale(1.1);
+        }
+
+        .subtotal-material {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #fef3c7;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .subtotal-valor {
+            color: #f59e0b;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+    
+        .secao-custos-materiais {
+            margin-top: 0;
+            padding-top: 25px;
+            border-top: 2px solid #fbcfe8;
+        }
+
+        .secao-custos-materiais h3 {
+            font-size: 1.5rem;
+            color: #831843;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .secao-custos-materiais h3::before {
+            content: '📦';
+            font-size: 1.8rem;
+        }
+    
+        .form-group-explicado {
+            margin-bottom: 25px;
+        }
+
+        .form-group-explicado label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #831843;
+            margin-bottom: 8px;
+        }
+
+        .exemplo-pratico {
+            margin-top: 8px;
+            padding: 12px;
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #92400e;
+        }
+
+        .destaque-lucro {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #6ee7b7;
+        }
+
+        .destaque-lucro label {
+            color: #065f46;
+            font-size: 1.1rem;
+        }
+    
+        .tipo-hint {
+            display: none;
+            margin-top: 10px;
+            padding: 12px;
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #1e40af;
+        }
+
+        .retirada-card {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-top: 4px solid #f59e0b;
+        }
+
+        .tipo-select {
+            font-size: 1rem;
+            padding: 14px;
+        }
+    
+        :root {
+            /* Cores principais (melhor contraste) */
+            --cor-primaria: #be185d;
+            --cor-secundaria: #831843;
+            --cor-texto: #1f2937;
+            --cor-texto-secundario: #4b5563;
+            
+            /* Fundos */
+            --cor-fundo: #ffffff;
+            --cor-fundo-card: #ffffff;
+            --cor-borda: #e5e7eb;
+            
+            /* Estados */
+            --cor-sucesso: #047857;
+            --cor-erro: #b91c1c;
+            --cor-alerta: #b45309;
+            --cor-info: #1e40af;
+        }
+        /* Tamanhos de fonte aumentados para acessibilidade 50+ */
+        body {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--cor-texto);
+        }
+
+        .form-input {
+            font-size: 18px !important;
+            padding: 14px 16px !important;
+            line-height: 1.5;
+        }
+
+        button, .btn {
+            font-size: 18px;
+            padding: 16px 24px;
+            min-height: 48px;
+            min-width: 140px;
+            margin: 8px;
+        }
+
+        .btn-acao {
+            min-width: 160px;
+            min-height: 56px;
+            font-size: 20px;
+            padding: 18px 28px;
+        }
+
+        .btn-icon {
+            min-width: 48px;
+            min-height: 48px;
+            padding: 12px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+        }
+
+        label {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        /* Touch targets maiores */
+        input[type="checkbox"],
+        input[type="radio"] {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+            cursor: pointer;
+        }
+
+        a {
+            color: var(--cor-primaria);
+            text-decoration: underline;
+            padding: 8px;
+            margin: -8px;
+            display: inline-block;
+        }
+
+        a:hover {
+            color: var(--cor-secundaria);
+        }
+    
+        .tutorial-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tutorial-overlay.active {
+            display: flex;
+        }
+
+        .tutorial-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tutorial-header {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            padding: 30px;
+            border-radius: 20px 20px 0 0;
+            position: relative;
+        }
+
+        .tutorial-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .tutorial-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-close:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: rotate(90deg);
+        }
+
+        .tutorial-body {
+            padding: 40px 30px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .tutorial-step {
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+
+        .tutorial-step.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .tutorial-icon {
+            font-size: 5rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tutorial-step h3 {
+            font-size: 1.8rem;
+            color: #831843;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tutorial-step p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            color: #4b5563;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .tutorial-destaque {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #f59e0b;
+            color: #92400e !important;
+            font-weight: 600;
+        }
+
+        .btn-tutorial-proximo,
+        .btn-tutorial-voltar,
+        .btn-tutorial-comecar {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn-tutorial-proximo {
+            background: linear-gradient(135deg, #f472b6, #ec4899);
+            color: white;
+            float: right;
+        }
+
+        .btn-tutorial-voltar {
+            background: #e5e7eb;
+            color: #4b5563;
+            float: left;
+        }
+
+        .btn-tutorial-comecar {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            width: 100%;
+            font-size: 1.3rem;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .btn-tutorial-proximo:hover,
+        .btn-tutorial-comecar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.4);
+        }
+
+        .tutorial-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f3f4f6;
+            border-radius: 10px;
+        }
+
+        .tutorial-checkbox input {
+            width: 24px;
+            height: 24px;
+        }
+
+        .tutorial-checkbox label {
+            font-size: 1rem;
+            color: #4b5563;
+            cursor: pointer;
+        }
+
+        .tutorial-progress {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .tutorial-progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #d1d5db;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tutorial-progress-dot.active {
+            background: #ec4899;
+            transform: scale(1.3);
+        }
+
+        .tutorial-progress-dot:hover {
+            transform: scale(1.2);
+        }
+    
+        .input-erro {
+            border: 2px solid #dc2626 !important;
+            background: #fef2f2 !important;
+        }
+
+        .mensagem-erro {
+            color: #dc2626;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            padding: 8px 12px;
+            background: #fef2f2;
+            border-left: 3px solid #dc2626;
+            border-radius: 4px;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        input[required]:not(:focus):invalid {
+            border-color: #fbbf24;
+        }
+
+        input[required]:focus {
+            border-color: #ec4899;
+            box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+        }
+
+        input[required]:valid {
+            border-color: #10b981;
+        }
+    
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            min-width: 320px;
+            max-width: 500px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            z-index: 9999;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .toast-show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: rgba(0, 0, 0, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .toast-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border-left: 4px solid #059669;
+            color: #065f46;
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-left: 4px solid #dc2626;
+            color: #991b1b;
+        }
+
+        .toast-warning {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .toast-info {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+
+        @media (max-width: 600px) {
+            .toast {
+                left: 10px;
+                right: 10px;
+                min-width: auto;
+                bottom: 10px;
+            }
+        }
+    </style>
+</head>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.14);
+            --glass-brd: rgba(255, 255, 255, 0.28);
+            --glass-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            --primary-1: #f472b6;
+            --primary-2: #ec4899;
+            --violet-1: #c084fc;
+            --violet-2: #a855f7;
+            --sky-1: #93c5fd;
+            --sky-2: #60a5fa;
+            /* Paleta fofinha */
+            --pastel-pink: #ffd1e8;
+            --pastel-lilac: #e9d5ff;
+            --pastel-sky: #dbeafe;
+            --pastel-mint: #dcfce7;
+            --text-deep: #5b2242;
+        }
+        html { font-size: 17px; }
+        body {
+            background: radial-gradient(1200px 800px at 10% 10%, rgba(236,72,153,0.08), transparent),
+                        radial-gradient(900px 700px at 90% 20%, rgba(168,85,247,0.08), transparent),
+                        radial-gradient(1000px 900px at 50% 100%, rgba(96,165,250,0.08), transparent), #0b0b12;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+        /* Aurora Background */
+        .aurora-bg {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            overflow: hidden;
+        }
+        .aurora-bg span {
+            position: absolute; filter: blur(60px); opacity: 0.5; mix-blend-mode: screen;
+            border-radius: 40% 60% 60% 40% / 40% 40% 60% 60%;
+            animation: drift 18s linear infinite;
+        }
+        .aurora-bg .a1 { background: linear-gradient(120deg, var(--primary-1), var(--primary-2)); width: 60vmax; height: 60vmax; left: -10vmax; top: -10vmax; }
+        .aurora-bg .a2 { background: linear-gradient(120deg, var(--violet-1), var(--violet-2)); width: 50vmax; height: 50vmax; right: -10vmax; top: 10vmax; animation-duration: 22s; }
+        .aurora-bg .a3 { background: linear-gradient(120deg, var(--sky-1), var(--sky-2)); width: 70vmax; height: 70vmax; left: 20vmax; bottom: -20vmax; animation-duration: 26s; }
+        @keyframes drift {
+            0% { transform: translate3d(0,0,0) rotate(0deg); }
+            50% { transform: translate3d(2vmax,-2vmax,0) rotate(120deg); }
+            100% { transform: translate3d(0,0,0) rotate(360deg); }
+        }
+        /* Glassmorphism Utilities */
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-brd);
+            box-shadow: var(--glass-shadow);
+            -webkit-backdrop-filter: saturate(160%) blur(14px);
+            backdrop-filter: saturate(160%) blur(14px);
+        }
+        /* Gradient Title */
+        .gradient-title,
+        .menu-title,
+        .login-title,
+        .tool-header h1 {
+            background: linear-gradient(90deg, var(--primary-1), var(--violet-1), var(--sky-1));
+            background-size: 200% 200%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            animation: gradientMove 14s ease infinite;
+        }
+        .card h2 { color: transparent; -webkit-background-clip: text; background-clip: text; background-image: linear-gradient(90deg, var(--primary-1), var(--violet-2)); }
+        @keyframes gradientMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+        /* Micro animations */
+        .float-up { animation: floatUp 600ms ease both; }
+        @keyframes floatUp { from { opacity: 0; transform: translateY(10px) scale(0.98);} to { opacity: 1; transform: translateY(0) scale(1);} }
+        /* Particles Canvas */
+        #particlesCanvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+        /* Elevate app content above bg */
+        body > *:not(.aurora-bg):not(#particlesCanvas) { position: relative; z-index: 2; }
+        /* Smooth transitions */
+        * { transition: background-color .3s ease, color .3s ease, transform .25s ease, box-shadow .25s ease, border-color .25s ease; }
+        /* Buttons ripple baseline */
+        .btn, button { position: relative; overflow: hidden; border-radius: 999px; letter-spacing: .2px; }
+        .ripple {
+            position: absolute; border-radius: 999px; transform: scale(0);
+            animation: ripple .6s ease-out; background: rgba(255,255,255,0.5); pointer-events: none;
+        }
+        @keyframes ripple { to { transform: scale(12); opacity: 0; } }
+        /* Remover fundos sólidos das telas para usar a aurora do body */
+        .login-screen, .menu-screen, .tool-screen { background: transparent !important; }
+        /* Glass look for existing elements without changing HTML */
+        .card, .menu-card, .dialog, .dialog-content, .summary-card, .auto-save-indicator, .login-card { background: var(--glass-bg) !important; border-color: var(--glass-brd) !important; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-radius: 26px; }
+        .menu-card:hover, .card:hover, .login-card:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 16px 40px rgba(236,72,153,0.22); }
+        /* Loading states */
+        .skeleton { position: relative; overflow: hidden; background: rgba(255,255,255,0.15); border-radius: 10px; }
+        .skeleton::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent); animation: shimmer 1.2s infinite; }
+        @keyframes shimmer { 100% { transform: translateX(100%);} }
+        .btn.loading, button.loading { pointer-events: none; opacity: .9; }
+        .btn.loading::after, button.loading::after { content: ''; width: 18px; height: 18px; border: 3px solid rgba(255,255,255,0.5); border-top-color: #fff; border-radius: 999px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg);} }
+        
+        /* Botões fofos */
+        .btn { font-weight: 700; min-height: 48px; box-shadow: 0 10px 30px rgba(236,72,153,0.18); }
+        .btn-primary { background: linear-gradient(135deg, #ff9ccf, #ff73b3) !important; }
+        .btn-secondary { background: linear-gradient(135deg, #d6b7ff, #b495ff) !important; }
+        .btn-info { background: linear-gradient(135deg, #bcdcff, #9fc7ff) !important; }
+        .btn-success { background: linear-gradient(135deg, #bff3d5, #8ee9b7) !important; }
+        .btn-danger { background: linear-gradient(135deg, #ffb3b3, #ff8f8f) !important; }
+        .btn:hover { box-shadow: 0 14px 36px rgba(236,72,153,0.25); }
+        .btn:active { transform: translateY(0) scale(0.99); }
+
+        /* Inputs fofos */
+        input, select, textarea { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.6); border-radius: 16px; padding: 14px 16px; color: var(--text-deep); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+        input::placeholder, textarea::placeholder { color: #c084b5; opacity: .9; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #f8b4d9; box-shadow: 0 0 0 4px rgba(248,180,217,0.35); }
+
+        /* Títulos mais fofos */
+        .menu-title, .login-title, .tool-header h1 { letter-spacing: .3px; text-shadow: 0 2px 14px rgba(236,72,153,0.18); }
+        .login-subtitle, .menu-subtitle { color: #b060a0 !important; }
+
+        /* Elementos decorativos reutilizáveis */
+        .badge-cute { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-weight: 600; font-size: .85rem; background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-lilac)); color: #7a255c; box-shadow: 0 6px 18px rgba(236,72,153,.18); }
+        .pill-cute { display: inline-block; padding: 8px 14px; border-radius: 999px; background: rgba(255,255,255,.6); border: 1px solid rgba(255,255,255,.7); box-shadow: 0 6px 18px rgba(0,0,0,.06); }
+        .soft-hr { height: 1px; border: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7), transparent); margin: 16px 0; }
+        
+        /* Tema bolsas: costura sutil (removida para evitar padrão sobre o conteúdo) */
+    </style>
+<body class="login-active">
+    <div class="aurora-bg">
+        <span class="a1"></span>
+        <span class="a2"></span>
+        <span class="a3"></span>
+    </div>
+    <canvas id="particlesCanvas"></canvas>
+    <div id="autoSaveIndicator" class="auto-save-indicator">
+        💾 Salvando...
+    </div>
+
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog-box">
+            <h2 id="dialogTitle"></h2>
+            <p id="dialogMessage"></p>
+            <div class="dialog-actions">
+                <button class="btn-cancel" id="dialogCancelBtn">Fechar</button>
+                <button class="btn-confirm" id="dialogConfirmBtn" style="display:none;">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="screen active" id="loginScreen">
+        <div class="login-screen">
+            <div class="login-card">
+                <div class="login-logo"><img class="app-logo" src="icon-512.png" alt="Logo Suite Bolsas"></div>
+                <h1 class="login-title">Suite Bolsas</h1>
+                <p class="login-subtitle">Lívia Xavier</p>
+                
+                <div class="login-error" id="loginError">
+                    ❌ Senha incorreta. Tente novamente.
+                </div>
+
+                <form class="login-form" id="loginForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <input 
+                            type="password" 
+                            id="passwordInput" 
+                            placeholder="Digite sua senha" 
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+                    <button type="submit" onclick="verificarSenha()">🔓 Entrar</button>
+                </form>
+
+                <div class="support-link">
+                    <a href="https://wa.me/5567991257842?text=Olá, estou com dúvidas no Suite Bolsas" target="_blank">
+                        ❓ Dúvidas? Fale com a Lívia
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp">
+        <div class="screen" id="menuScreen">
+            <div class="menu-screen">
+                <div class="menu-header">
+                    <div class="menu-logo"><img class="app-logo" src="icon-192.png" alt="Logo Suite Bolsas"></div>
+                    <h1 class="menu-title">Suite Bolsas</h1>
+                    <p class="menu-subtitle">Lívia Xavier - Ferramentas Profissionais</p>
+                    <button onclick="fazerLogout()" style="position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.3); border: 2px solid white; color: white; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                        🔒 Sair
+                    </button>
+                </div>
+
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showScreen('dashboardScreen')">
+                        <div class="menu-card-icon">📊</div>
+                        <h2 class="menu-card-title">Dashboard</h2>
+                        <p class="menu-card-description">Visão geral e acesso rápido</p>
+                    </div>
+
+                    <div class="menu-card" onclick="showScreen('calcScreen')">
+                        <div class="menu-card-icon">🧮</div>
+                        <h2 class="menu-card-title">Calculadora</h2>
+                        <p class="menu-card-description">Calcule custos de materiais</p>
+                    </div>
+
+                    <div class="menu-card" onclick="showScreen('fluxoScreen')">
+                        <div class="menu-card-icon">💰</div>
+                        <h2 class="menu-card-title">Fluxo de Caixa</h2>
+                        <p class="menu-card-description">Controle entradas e saídas</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="dashboardScreen">
+            <div class="tool-screen">
+                <div class="tool-header">
+                    <h1>📊 Dashboard</h1>
+                    <p>Visão geral e acesso rápido</p>
+                    <button class="back-btn" onclick="showScreen('menuScreen')">← Voltar</button>
+                </div>
+
+                <div class="container">
+                    <div class="card">
+                        <h2> Acesso Rápido</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <button class="btn btn-primary" onclick="showScreen('calcScreen')" style="width: 100%;">
+                                🧮 Nova Calculadora
+                            </button>
+                            <button class="btn btn-secondary" onclick="showScreen('fluxoScreen')" style="width: 100%;">
+                                💰 Fluxo de Caixa
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2> Resumo Financeiro</h2>
+                        <div class="summary-grid">
+                            <div class="summary-card neutral">
+                                <h3>Projetos Salvos</h3>
+                                <div class="value" id="dashTotalProjetos">0</div>
+                            </div>
+                            <div class="summary-card positive">
+                                <h3>Saldo Atual</h3>
+                                <div class="value" id="dashSaldoAtual">R$ 0,00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="backup-btn-container">
+                            <p class="backup-btn-info">
+                                Clique aqui para salvar uma cópia dos seus dados no celular
+                            </p>
+                            <button class="backup-btn-large" onclick="exportarBackupCompleto()">
+                                📤 Baixar Cópia de Segurança
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="calcScreen">
+            <div class="tool-screen">
+                <div class="tool-header">
+                    <h1>🧮 Calculadora de Custos</h1>
+                    <p>Calcule o custo total dos seus materiais</p>
+                    <button class="back-btn" onclick="showScreen('menuScreen')">← Voltar</button>
+                </div>
+
+                <div class="container">
+                    <div class="card">
+                        <h2> Projetos Salvos</h2>
+                        <div id="projetosList"></div>
+                        <button class="btn btn-secondary" onclick="novoProjeto()">➕ Novo Projeto</button>
+                    </div>
+
+                    <div class="card" id="calculadoraForm" style="display: none;">
+                        <h2> Dados do Projeto</h2>
+                        <div class="form-group">
+                            <label>Nome do Projeto</label>
+                            <input type="text" id="nomeProjeto" placeholder="Ex: Bolsa de Couro">
+                        </div>
+
+                        <h2 style="margin-top: 30px;"> Materiais</h2>
+                        <div id="materiaisList"></div>
+                        <button class="btn btn-info" onclick="adicionarMaterial()">➕ Adicionar Material</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2> Custos Indiretos e Precificação</h2>
+                    
+                    <div class="form-group">
+                        <label>💡 Custo Administrativo (%)</label>
+                        <input type="number" id="custoAdmInput" step="0.01" value="15" min="0" max="100"
+                               placeholder="água, luz, internet, taxa cartão">
+                        <small>Padrão: 15% (água, luz, combustível, internet, taxa cartão)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📦 Custo Variável (%)</label>
+                        <input type="number" id="custoVariavelInput" step="0.01" value="10" min="0" max="100"
+                               placeholder="revisão máquina, embalagens">
+                        <small>Padrão: 10% (revisão máquina, embalagens, despesas variáveis)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🏦 Imposto (%)</label>
+                        <input type="number" id="impostoInput" step="0.01" value="6" min="0" max="100"
+                               placeholder="impostos sobre vendas">
+                        <small>Padrão: 6% (impostos sobre vendas)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📈 Margem de Lucro (multiplicador)</label>
+                        <input type="number" id="margemLucroInput" step="0.1" value="2" min="1" max="10"
+                               placeholder="ex: 2 = dobro do custo"
+                               oninput="calcularCustos(); atualizarExplicacaoMargem()">
+                        <small id="explicacaoMargem">
+                            Exemplo: 2 = preço será 2x o custo (100% de lucro) | 2.5 = 2.5x o custo (150% lucro) | 3 = 3x o custo (200% lucro)
+                        </small>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 30px;">
+                            <h2 style="margin-bottom: 25px; text-align: center;">📊 Análise de Custos e Precificação</h2>
+                            
+                            <div class="resultado">
+                                <h3>🧵 Custo dos Materiais</h3>
+                                <div class="valor" id="custoMateriais">R$ 0,00</div>
+                                <small style="color: #831843; opacity: 0.8;">Soma de todos os materiais</small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #fef3c7, #fde68a); border-left: 5px solid #f59e0b;">
+                                <h3>💡 Custo Administrativo</h3>
+                                <div class="valor" id="custoAdm">R$ 0,00</div>
+                                <small style="color: #92400e;">Água, luz, internet, taxa de cartão</small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border-left: 5px solid #6366f1;">
+                                <h3>📦 Custo Variável</h3>
+                                <div class="valor" id="custoVariavel">R$ 0,00</div>
+                                <small style="color: #3730a3;">Embalagens, manutenção de máquinas</small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #fee2e2, #fecaca); border-left: 5px solid #ef4444;">
+                                <h3>🏦 Imposto</h3>
+                                <div class="valor" id="custoImposto">R$ 0,00</div>
+                                <small style="color: #991b1b;">Impostos sobre vendas</small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #dbeafe, #93c5fd); border-left: 5px solid #3b82f6; margin-top: 20px; padding: 25px;">
+                                <h3>💵 Custo Total</h3>
+                                <div class="valor" id="custoTotal" style="font-size: 2.8rem;">R$ 0,00</div>
+                                <small style="color: #1e3a8a; font-weight: 600;">Soma de todos os custos diretos e indiretos</small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #fef3c7, #fcd34d); border-left: 5px solid #f59e0b; margin-top: 20px;">
+                                <h3>💰 Preço de Venda Sugerido</h3>
+                                <div class="valor" id="precoVenda" style="font-size: 3rem;">R$ 0,00</div>
+                                <small style="display: block; margin-top: 8px; color: #92400e; font-style: italic;">
+                                    Este é o preço que você deve cobrar para ter a margem de lucro desejada
+                                </small>
+                            </div>
+                            
+                            <div class="resultado" style="background: linear-gradient(135deg, #d1fae5, #6ee7b7); border-left: 5px solid #059669;">
+                                <h3>📈 Seu Lucro Líquido</h3>
+                                <div class="valor" id="lucroLiquido" style="font-size: 2.8rem; color: #059669;">R$ 0,00</div>
+                                <small style="display: block; margin-top: 8px; color: #065f46; font-style: italic;">
+                                    Este é o valor que sobra para você após todos os custos
+                                </small>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; margin-top: 30px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="salvarProjeto()">💾 Salvar Projeto</button>
+                            <button class="btn btn-danger" onclick="excluirProjeto()">🗑️ Excluir Projeto</button>
+                            <button class="btn btn-secondary" onclick="limparFormulario()">🔄 Limpar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="screen" id="fluxoScreen">
+            <div class="tool-screen">
+                <div class="tool-header">
+                    <h1>💰 Fluxo de Caixa</h1>
+                    <p>Controle suas entradas e saídas</p>
+                    <button class="back-btn" onclick="showScreen('menuScreen')">← Voltar</button>
+                </div>
+
+                <div class="container">
+                    <div class="card">
+                        <h2> Selecionar Período</h2>
+                        <div class="month-selector">
+                            <button onclick="mudarPeriodo(-1)">← Anterior</button>
+                            <input type="month" id="periodoAtual" onchange="carregarPeriodo()">
+                            <button onclick="mudarPeriodo(1)">Próximo →</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2> Saldo Inicial</h2>
+                        <div class="form-group">
+                            <label>Saldo Inicial do Período</label>
+                            <input type="number" id="saldoInicial" step="0.01" value="0" placeholder="0.00">
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2>➕ Novo Lançamento</h2>
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="dataLancamento">
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição</label>
+                            <input type="text" id="descricaoLancamento" placeholder="Ex: Venda de bolsa">
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="tipoLancamento">
+                                <option value="Entrada">💚 Entrada</option>
+                                <option value="Saída">❤️ Saída</option>
+                                <option value="Retirada">💛 Retirada</option>
+                        <option value="retirada">🏦 Retirada (Seu Pró-labore)</option>
+                    </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Valor (R$)</label>
+                            <input type="number" id="valorLancamento" step="0.01" placeholder="0.00">
+                        </div>
+                        <button class="btn btn-primary" onclick="adicionarLancamento()">➕ Adicionar Lançamento</button>
+                    </div>
+
+                    <div class="card">
+                        <h2> Lançamentos</h2>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Descrição</th>
+                                        <th>Tipo</th>
+                                        <th>Valor</th>
+                                        <th>Saldo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fluxoTableBody">
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; padding: 30px; color: #a21caf;">
+                                            Nenhum lançamento cadastrado
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="summary-grid">
+                            <div class="summary-card positive">
+                                <h3>💚 Total Entradas</h3>
+                                <div class="value entrada" id="totalEntradas">R$ 0,00</div>
+                            </div>
+                            <div class="summary-card negative">
+                                <h3>❤️ Total Saídas</h3>
+                                <div class="value saida" id="totalSaidas">R$ 0,00</div>
+                            </div>
+                            <div class="summary-card neutral">
+                                <h3>💛 Total Retiradas</h3>
+                                <div class="value retirada" id="totalRetiradas">R$ 0,00</div>
+                            </div>
+                            <div class="summary-card" id="saldoFinalRow">
+                                <h3>💵 Saldo Final</h3>
+                                <div class="value" id="saldoFinal">R$ 0,00</div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; margin-top: 25px; flex-wrap: wrap;">
+                            <button class="btn btn-success" onclick="salvarFluxo()">💾 Salvar</button>
+                            <button class="btn btn-info" onclick="exportarCSV()">📥 Exportar CSV</button>
+                            <button class="btn btn-danger" onclick="limparFluxo()">🗑️ Limpar Período</button>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <h2> Resumo Anual</h2>
+                        <div class="form-group">
+                            <label>Selecione o Ano</label>
+                            <select id="anoResumo" onchange="carregarResumoAnual()">
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+
+                        <div id="mesesResumo"></div>
+
+                        <div class="summary-card" id="saldoFinalAno" style="margin-top: 25px;">
+                            <h3>💵 Saldo Final do Ano</h3>
+                            <div class="value" id="saldoTotalAno">R$ 0,00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AppStorage = {
+            save: (key, data) => {
+                try {
+                    localStorage.setItem(key, JSON.stringify(data));
+                    return true;
+                } catch (e) {
+                    console.error('Erro ao salvar:', e);
+                    return false;
+                }
+            },
+            load: (key) => {
+                try {
+                    const data = localStorage.getItem(key);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    console.error('Erro ao carregar:', e);
+                    return null;
+                }
+            },
+            remove: (key) => {
+                try {
+                    localStorage.removeItem(key);
+                    return true;
+                } catch (e) {
+                    console.error('Erro ao remover:', e);
+                    return false;
+                }
+            }
+        };
+
+        const SENHA_CORRETA = 'livia2025';
+        let autoSaveTimeout;
+
+        function verificarSenha() {
+            const senha = document.getElementById('passwordInput').value.trim();
+            const loginError = document.getElementById('loginError');
+            
+            console.log('Tentativa de login com senha:', senha.length, 'caracteres');
+            console.log('Senha correta:', SENHA_CORRETA);
+
+            if (senha === SENHA_CORRETA) {
+                console.log('✅ Senha correta! Fazendo login...');
+                
+                // Esconder erro
+                loginError.classList.remove('show');
+                
+                // Remover classe login-active do body
+                document.body.classList.remove('login-active');
+                
+                // Esconder tela de login
+                const loginScreen = document.getElementById('loginScreen');
+                loginScreen.classList.remove('active');
+                loginScreen.style.display = 'none';
+                
+                // Mostrar app principal
+                const mainApp = document.getElementById('mainApp');
+                mainApp.style.display = 'block';
+                
+                setTimeout(() => {
+                    mainApp.style.opacity = '1';
+                    showScreen('menuScreen');
+                    console.log('✅ Login completo! Menu exibido.');
+                }, 50);
+                
+                // Salvar sessão (opcional - para não pedir senha novamente)
+                localStorage.setItem('app_autenticado', 'true');
+                
+            } else {
+                console.log('❌ Senha incorreta!');
+                loginError.classList.add('show');
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                
+                // Vibrar no mobile se disponível
+                if (navigator.vibrate) {
+                    navigator.vibrate([100, 50, 100]);
+                }
+            }
+        }
+
+        // Verificar se já está autenticado ao carregar
+        window.addEventListener('DOMContentLoaded', function() {
+            const autenticado = localStorage.getItem('app_autenticado');
+            if (autenticado === 'true') {
+                console.log('✅ Usuário já autenticado, pulando login...');
+                // Pular tela de login
+                document.body.classList.remove('login-active');
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                setTimeout(() => {
+                    document.getElementById('mainApp').style.opacity = '1';
+                    showScreen('menuScreen');
+                }, 50);
+            }
+        });
+
+        // Função de logout
+        function fazerLogout() {
+            if (confirm('Deseja realmente sair do app?')) {
+                console.log('🔒 Fazendo logout...');
+                
+                // Limpar autenticação
+                localStorage.removeItem('app_autenticado');
+                
+                // Esconder app principal
+                const mainApp = document.getElementById('mainApp');
+                mainApp.style.opacity = '0';
+                
+                setTimeout(() => {
+                    mainApp.style.display = 'none';
+                    
+                    // Mostrar tela de login
+                    document.body.classList.add('login-active');
+                    const loginScreen = document.getElementById('loginScreen');
+                    loginScreen.style.display = 'block';
+                    loginScreen.classList.add('active');
+                    
+                    // Limpar campo de senha
+                    document.getElementById('passwordInput').value = '';
+                    document.getElementById('passwordInput').focus();
+                    
+                    console.log('✅ Logout completo!');
+                }, 300);
+            }
+        }
+
+        document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                verificarSenha();
+            }
+        });
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'dashboardScreen') {
+                atualizarDashboard();
+            } else if (screenId === 'calcScreen') {
+                carregarProjetos();
+            } else if (screenId === 'fluxoScreen') {
+                inicializarFluxoCaixa();
+            }
+        }
+
+        function atualizarDashboard() {
+            const projetos = AppStorage.load('projetos') || [];
+            document.getElementById('dashTotalProjetos').textContent = projetos.length;
+
+            const hoje = new Date();
+            const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+            const fluxoAtual = AppStorage.load(`fluxoCaixa_${mesAtual}`);
+            
+            if (fluxoAtual) {
+                const saldoFinal = calcularSaldoFinal(fluxoAtual);
+                document.getElementById('dashSaldoAtual').textContent = formatCurrency(saldoFinal);
+            } else {
+                document.getElementById('dashSaldoAtual').textContent = 'R$ 0,00';
+            }
+        }
+
+        function mostrarAutoSave() {
+            const indicator = document.getElementById('autoSaveIndicator');
+            indicator.classList.add('show');
+            
+            if (autoSaveTimeout) clearTimeout(autoSaveTimeout);
+            
+            autoSaveTimeout = setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        let projetos = [];
+        let projetoAtual = null;
+        let materiais = [];
+
+        function carregarProjetos() {
+            projetos = AppStorage.load('projetos') || [];
+            renderProjetos();
+        }
+
+        function renderProjetos() {
+            const lista = document.getElementById('projetosList');
+            
+            if (projetos.length === 0) {
+                lista.innerHTML = '<p style="color: #a21caf; text-align: center; padding: 20px;">Nenhum projeto salvo ainda</p>';
+                return;
+            }
+
+            lista.innerHTML = projetos.map((projeto, index) => `
+                <div class="projeto-item ${projetoAtual === index ? 'selected' : ''}" onclick="selecionarProjeto(${index})">
+                    <h3>${projeto.nome}</h3>
+                    <p><strong>Materiais:</strong> ${projeto.materiais.length} itens</p>
+                    <p><strong>Custo Total:</strong> ${formatCurrency(projeto.custoTotal)}</p>
+                </div>
+            `).join('');
+        }
+
+        function novoProjeto() {
+            projetoAtual = null;
+            materiais = [{ nome: '', quantidade: 1, preco: 0 }];
+            document.getElementById('nomeProjeto').value = '';
+            document.getElementById('calculadoraForm').style.display = 'block';
+            renderMateriais();
+            calcularCustos();
+            renderProjetos();
+        }
+
+        function selecionarProjeto(index) {
+            projetoAtual = index;
+            const projeto = projetos[index];
+            
+            document.getElementById('nomeProjeto').value = projeto.nome;
+            materiais = projeto.materiais.map(m => ({...m}));
+            
+            document.getElementById('calculadoraForm').style.display = 'block';
+            renderMateriais();
+            
+            // Carregar campos de custos indiretos
+            document.getElementById('custoAdmInput').value = projeto.custoAdm || 15;
+            document.getElementById('custoVariavelInput').value = projeto.custoVariavel || 10;
+            document.getElementById('impostoInput').value = projeto.imposto || 6;
+            document.getElementById('margemLucroInput').value = projeto.margemLucro || 2;
+            
+            calcularCustos();
+            renderProjetos();
+        }
+
+        function renderMateriais() {
+            const lista = document.getElementById('materiaisList');
+            lista.innerHTML = materiais.map((material, index) => `
+                <div class="material-item">
+                    <div class="material-field">
+                        <label class="material-label">📦 Nome do Material</label>
+                        <input type="text" placeholder="Ex: Tecido, Zíper, Linha..." value="${material.nome}" 
+                               onchange="materiais[${index}].nome = this.value; calcularCustos()">
+                    </div>
+                    <div class="material-field">
+                        <label class="material-label">🔢 Quantidade</label>
+                        <input type="number" placeholder="Ex: 2" value="${material.quantidade}" min="0.01" step="0.01"
+                               oninput="materiais[${index}].quantidade = parseFloat(this.value) || 1; calcularCustos()">
+                    </div>
+                    <div class="material-field">
+                        <label class="material-label">💵 Preço Unitário (R$)</label>
+                        <input type="number" placeholder="Ex: 25.50" value="${material.preco}" step="0.01" min="0"
+                               oninput="materiais[${index}].preco = parseFloat(this.value) || 0; calcularCustos()">
+                    </div>
+                    <div class="material-field">
+                        <label class="material-label">💰 Total</label>
+                        <div class="material-total">${formatCurrency((material.quantidade || 0) * (material.preco || 0))}</div>
+                    </div>
+                    <button class="btn btn-danger btn-remover" onclick="removerMaterial(${index})" title="Remover material">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function adicionarMaterial() {
+            materiais.push({ nome: '', quantidade: 1, preco: 0 });
+            renderMateriais();
+            calcularCustos();
+        }
+
+        function removerMaterial(index) {
+            if (materiais.length > 1) {
+                materiais.splice(index, 1);
+                renderMateriais();
+                calcularCustos();
+            } else {
+                mostrarMensagem('❌ Deve haver pelo menos um material!', 'error');
+            }
+        }
+
+        function atualizarExplicacaoMargem() {
+            const margem = parseFloat(document.getElementById('margemLucroInput').value) || 2;
+            const percentualLucro = ((margem - 1) * 100).toFixed(0);
+            const explicacao = document.getElementById('explicacaoMargem');
+            
+            if (explicacao) {
+                explicacao.innerHTML = `
+                    <strong style="color: #059669;">Multiplicador ${margem}x = ${percentualLucro}% de lucro sobre o custo</strong><br>
+                    Exemplo: Se o custo total for R$ 100, o preço de venda será R$ ${(100 * margem).toFixed(2)}
+                `;
+            }
+        }
+
+        function calcularCustos() {
+            if (materiais.length === 0) {
+                document.getElementById('custoMateriais').textContent = 'R$ 0,00';
+                document.getElementById('custoAdm').textContent = 'R$ 0,00';
+                document.getElementById('custoVariavel').textContent = 'R$ 0,00';
+                document.getElementById('custoImposto').textContent = 'R$ 0,00';
+                document.getElementById('custoTotal').textContent = 'R$ 0,00';
+                document.getElementById('lucroLiquido').textContent = 'R$ 0,00';
+                document.getElementById('precoVenda').textContent = 'R$ 0,00';
+                return;
+            }
+
+            // 1. Custo Direto (materiais)
+            const custoMateriais = materiais.reduce((total, m) => 
+                total + ((m.quantidade || 0) * (m.preco || 0)), 0);
+            
+            // 2. Custos Indiretos
+            const percAdm = parseFloat(document.getElementById('custoAdmInput').value) || 15;
+            const percVariavel = parseFloat(document.getElementById('custoVariavelInput').value) || 10;
+            const percImposto = parseFloat(document.getElementById('impostoInput').value) || 6;
+            
+            const custoAdm = custoMateriais * (percAdm / 100);
+            const custoVariavel = custoMateriais * (percVariavel / 100);
+            const imposto = custoMateriais * (percImposto / 100);
+            
+            // 3. Custo Total
+            const custoTotal = custoMateriais + custoAdm + custoVariavel + imposto;
+            
+            // 4. Preço de Venda com Margem (MULTIPLICADOR)
+            const margem = parseFloat(document.getElementById('margemLucroInput').value) || 2;
+            const precoVenda = custoTotal * margem;
+            const lucro = precoVenda - custoTotal;
+            
+            // 5. Exibir Resultados (AGORA COM IDS CORRETOS!)
+            document.getElementById('custoMateriais').textContent = formatCurrency(custoMateriais);
+            document.getElementById('custoAdm').textContent = formatCurrency(custoAdm);
+            document.getElementById('custoVariavel').textContent = formatCurrency(custoVariavel);
+            document.getElementById('custoImposto').textContent = formatCurrency(imposto);
+            document.getElementById('custoTotal').textContent = formatCurrency(custoTotal);
+            document.getElementById('lucroLiquido').textContent = formatCurrency(lucro);
+            document.getElementById('precoVenda').textContent = formatCurrency(precoVenda);
+            
+            // Atualizar totais dos materiais sem re-renderizar
+            materiais.forEach((material, idx) => {
+                const totalEl = document.querySelector(`.material-item:nth-child(${idx + 1}) .material-total`);
+                if (totalEl) {
+                    totalEl.textContent = formatCurrency((material.quantidade || 0) * (material.preco || 0));
+                }
+            });
+            
+            // Alerta se margem muito baixa
+            if (margem < 1.5 && custoMateriais > 0) {
+                mostrarMensagem('⚠️ Margem de lucro muito baixa! Recomendamos pelo menos 1.5x (50% de lucro)', 'warning');
+            }
+        }
+
+        function salvarProjeto() {
+            const nome = document.getElementById('nomeProjeto').value.trim();
+            
+            if (!nome) {
+                mostrarMensagem('❌ Digite o nome do projeto!', 'error');
+                return;
+            }
+
+            if (materiais.some(m => !m.nome)) {
+                mostrarMensagem('❌ Preencha o nome de todos os materiais!', 'error');
+                return;
+            }
+
+            const custoTotal = materiais.reduce((total, m) => total + (m.quantidade * m.preco), 0);
+
+            const projeto = {
+                nome,
+                materiais: materiais.map(m => ({...m})),
+                custoAdm: parseFloat(document.getElementById('custoAdmInput').value) || 15,
+                custoVariavel: parseFloat(document.getElementById('custoVariavelInput').value) || 10,
+                imposto: parseFloat(document.getElementById('impostoInput').value) || 6,
+                margemLucro: parseFloat(document.getElementById('margemLucroInput').value) || 2,
+                custoTotal: materiais.reduce((t, m) => t + (m.quantidade * m.preco), 0) * (1 + ((parseFloat(document.getElementById('custoAdmInput').value) || 15) + (parseFloat(document.getElementById('custoVariavelInput').value) || 10) + (parseFloat(document.getElementById('impostoInput').value) || 6)) / 100),
+                precoVenda: 0,
+                lucro: 0,
+                custoTotal
+            };
+
+            if (projetoAtual !== null) {
+                projetos[projetoAtual] = projeto;
+            } else {
+                projetos.push(projeto);
+                projetoAtual = projetos.length - 1;
+            }
+
+            AppStorage.save('projetos', projetos);
+            mostrarAutoSave();
+            renderProjetos();
+            mostrarMensagem('✅ Projeto salvo com sucesso!', 'success');
+        }
+
+        function excluirProjeto() {
+            if (projetoAtual === null) {
+                mostrarMensagem('❌ Selecione um projeto para excluir!', 'error');
+                return;
+            }
+
+            const executarExclusao = () => {
+                projetos.splice(projetoAtual, 1);
+                AppStorage.save('projetos', projetos);
+                limparFormulario();
+                renderProjetos();
+                mostrarAutoSave();
+                mostrarMensagem('✅ Projeto excluído!', 'success');
+            };
+
+            confirmarAcao('Deseja realmente excluir este projeto? Esta ação não pode ser desfeita.', executarExclusao);
+        }
+
+        function limparFormulario() {
+            projetoAtual = null;
+            materiais = [];
+            document.getElementById('nomeProjeto').value = '';
+            document.getElementById('calculadoraForm').style.display = 'none';
+            renderProjetos();
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        let fluxoData = { saldoInicial: 0, lancamentos: [] };
+        let currentPeriodo = '';
+
+        function inicializarFluxoCaixa() {
+            const hoje = new Date();
+            const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('periodoAtual').value = mesAtual;
+            document.getElementById('dataLancamento').value = hoje.toISOString().split('T')[0];
+            carregarPeriodo();
+            carregarResumoAnual();
+        }
+
+        function carregarPeriodo() {
+            currentPeriodo = document.getElementById('periodoAtual').value;
+            const key = `fluxoCaixa_${currentPeriodo}`;
+            fluxoData = AppStorage.load(key) || { saldoInicial: 0, lancamentos: [] };
+            
+            document.getElementById('saldoInicial').value = fluxoData.saldoInicial || 0;
+            renderFluxoTable();
+            updateFluxoTotals();
+        }
+
+        function mudarPeriodo(direcao) {
+            const input = document.getElementById('periodoAtual');
+            const [ano, mes] = input.value.split('-').map(Number);
+            
+            let novoMes = mes + direcao;
+            let novoAno = ano;
+
+            if (novoMes > 12) {
+                novoMes = 1;
+                novoAno++;
+            } else if (novoMes < 1) {
+                novoMes = 12;
+                novoAno--;
+            }
+
+            input.value = `${novoAno}-${String(novoMes).padStart(2, '0')}`;
+            carregarPeriodo();
+        }
+
+        function adicionarLancamento() {
+            const data = document.getElementById('dataLancamento').value;
+            const descricao = document.getElementById('descricaoLancamento').value.trim();
+            const tipo = document.getElementById('tipoLancamento').value;
+            const valor = parseFloat(document.getElementById('valorLancamento').value) || 0;
+
+            if (!data || !descricao || valor <= 0) {
+                mostrarMensagem('❌ Preencha todos os campos corretamente!', 'error');
+                return;
+            }
+
+            const saldoInicial = parseFloat(document.getElementById('saldoInicial').value) || 0;
+            const lancamentosAnteriores = fluxoData.lancamentos
+                .filter(l => new Date(l.data) <= new Date(data))
+                .sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            let saldoAtual = saldoInicial;
+            lancamentosAnteriores.forEach(l => {
+                if (l.tipo === 'Entrada') {
+                    saldoAtual += l.valor;
+                } else if (l.tipo === 'Saída') {
+                    saldoAtual -= l.valor;
+                } else if (l.tipo === 'Retirada') {
+                    saldoAtual -= l.valor;
+                }
+            });
+
+            if (tipo === 'Entrada') {
+                saldoAtual += valor;
+            } else if (tipo === 'Saída') {
+                saldoAtual -= valor;
+            } else if (tipo === 'Retirada') {
+                saldoAtual -= valor;
+            }
+
+            const lancamento = {
+                data,
+                descricao,
+                tipo,
+                valor,
+                saldo: saldoAtual,
+                id: Date.now()
+            };
+
+            if (!fluxoData.lancamentos) {
+                fluxoData.lancamentos = [];
+            }
+
+            fluxoData.lancamentos.push(lancamento);
+            fluxoData.lancamentos.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+            let saldoRecalc = saldoInicial;
+            fluxoData.lancamentos = fluxoData.lancamentos.map(l => {
+                if (l.tipo === 'Entrada') {
+                    saldoRecalc += l.valor;
+                } else if (l.tipo === 'Saída') {
+                    saldoRecalc -= l.valor;
+                } else if (l.tipo === 'Retirada') {
+                    saldoRecalc -= l.valor;
+                }
+                l.saldo = saldoRecalc;
+                return l;
+            });
+
+            document.getElementById('descricaoLancamento').value = '';
+            document.getElementById('valorLancamento').value = '';
+
+            renderFluxoTable();
+            updateFluxoTotals();
+            salvarFluxoAutomatico();
+            mostrarAutoSave();
+            mostrarMensagem('✅ Lançamento adicionado!', 'success');
+        }
+
+        function excluirLancamento(id) {
+            const executarExclusao = () => {
+                fluxoData.lancamentos = fluxoData.lancamentos.filter(l => l.id !== id);
+                
+                const saldoInicial = parseFloat(document.getElementById('saldoInicial').value) || 0;
+                let saldoRecalc = saldoInicial;
+                fluxoData.lancamentos = fluxoData.lancamentos.map(l => {
+                    if (l.tipo === 'Entrada') {
+                        saldoRecalc += l.valor;
+                    } else if (l.tipo === 'Saída') {
+                        saldoRecalc -= l.valor;
+                    } else if (l.tipo === 'Retirada') {
+                        saldoRecalc -= l.valor;
+                    }
+                    l.saldo = saldoRecalc;
+                    return l;
+                });
+
+                renderFluxoTable();
+                updateFluxoTotals();
+                salvarFluxoAutomatico();
+                mostrarAutoSave();
+                mostrarMensagem('✅ Lançamento excluído!', 'success');
+            };
+
+            confirmarAcao('Deseja realmente excluir este lançamento?', executarExclusao);
+        }
+
+        function renderFluxoTable() {
+            const tbody = document.getElementById('fluxoTableBody');
+            
+            if (!fluxoData.lancamentos || fluxoData.lancamentos.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 30px; color: #a21caf;">
+                            Nenhum lançamento cadastrado
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const lancamentosOrdenados = [...fluxoData.lancamentos].sort((a, b) => 
+                new Date(a.data) - new Date(b.data)
+            );
+
+            const rows = lancamentosOrdenados.map(lancamento => {
+                const dataFormatada = new Date(lancamento.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                const tipoClass = lancamento.tipo === 'Entrada' ? 'entrada' : 
+                                 lancamento.tipo === 'Saída' ? 'saida' : 'retirada';
+                const tipoIcon = lancamento.tipo === 'Entrada' ? '💚' : 
+                                lancamento.tipo === 'Saída' ? '❤️' : '💛';
+                
+                return `
+                    <tr>
+                        <td>${dataFormatada}</td>
+                        <td>${lancamento.descricao}</td>
+                        <td class="${tipoClass}">${tipoIcon} ${lancamento.tipo}</td>
+                        <td class="${tipoClass}">${formatCurrency(lancamento.valor)}</td>
+                        <td class="${lancamento.saldo >= 0 ? 'entrada' : 'saida'}">${formatCurrency(lancamento.saldo)}</td>
+                        <td>
+                            <button class="btn btn-danger" style="padding: 8px 15px; font-size: 0.9rem;" 
+                                    onclick="excluirLancamento(${lancamento.id})">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rows.join('');
+        }
+
+        function updateFluxoTotals() {
+            if (!fluxoData.lancamentos) {
+                fluxoData.lancamentos = [];
+            }
+
+            const totals = fluxoData.lancamentos.reduce((acc, lancamento) => {
+                if (lancamento.tipo === 'Entrada') {
+                    acc.entradas += lancamento.valor;
+                } else if (lancamento.tipo === 'Saída') {
+                    acc.saidas += lancamento.valor;
+                } else if (lancamento.tipo === 'Retirada') {
+                    acc.retiradas += lancamento.valor;
+                }
+                return acc;
+            }, { entradas: 0, saidas: 0, retiradas: 0 });
+
+            const saldoInicial = parseFloat(document.getElementById('saldoInicial').value) || 0;
+            const saldoFinal = saldoInicial + totals.entradas - totals.saidas - totals.retiradas;
+
+            document.getElementById('totalEntradas').textContent = formatCurrency(totals.entradas);
+            document.getElementById('totalSaidas').textContent = formatCurrency(totals.saidas);
+            document.getElementById('totalRetiradas').textContent = formatCurrency(totals.retiradas);
+            document.getElementById('saldoFinal').textContent = formatCurrency(saldoFinal);
+
+            const saldoFinalRow = document.getElementById('saldoFinalRow');
+            saldoFinalRow.classList.remove('positive', 'negative');
+            saldoFinalRow.classList.add(saldoFinal >= 0 ? 'positive' : 'negative');
+        }
+
+        function salvarFluxoAutomatico() {
+            if (!currentPeriodo) return;
+
+            const saldoInicial = parseFloat(document.getElementById('saldoInicial').value) || 0;
+            fluxoData.saldoInicial = saldoInicial;
+
+            const key = `fluxoCaixa_${currentPeriodo}`;
+            AppStorage.save(key, fluxoData);
+        }
+
+        function salvarFluxo() {
+            salvarFluxoAutomatico();
+            mostrarAutoSave();
+            mostrarMensagem('✅ Fluxo de caixa salvo com sucesso!', 'success');
+        }
+
+        function limparFluxo() {
+            const executarLimpeza = () => {
+                fluxoData = { saldoInicial: 0, lancamentos: [] };
+                document.getElementById('saldoInicial').value = 0;
+                renderFluxoTable();
+                updateFluxoTotals();
+                salvarFluxoAutomatico();
+                mostrarAutoSave();
+                mostrarMensagem('✅ Fluxo de caixa limpo!', 'success');
+            };
+            
+            confirmarAcao('Deseja realmente limpar todos os dados do período atual? Esta ação não pode ser desfeita.', executarLimpeza);
+        }
+
+        function exportarCSV() {
+            if (!fluxoData.lancamentos || fluxoData.lancamentos.length === 0) {
+                mostrarMensagem('❌ Nenhum lançamento para exportar!', 'error');
+                return;
+            }
+
+            const headers = 'Data,Descrição,Tipo,Valor,Saldo\n';
+            const rows = fluxoData.lancamentos
+                .sort((a, b) => new Date(a.data) - new Date(b.data))
+                .map(lancamento => {
+                    const dataFormatada = new Date(lancamento.data + 'T00:00:00').toLocaleDateString('pt-BR');
+                    return `${dataFormatada},"${lancamento.descricao}",${lancamento.tipo},${lancamento.valor.toFixed(2).replace('.', ',')},${lancamento.saldo.toFixed(2).replace('.', ',')}`;
+                })
+                .join('\n');
+
+            const csv = headers + rows;
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', `fluxo_caixa_${currentPeriodo}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            mostrarMensagem('✅ Arquivo CSV exportado com sucesso!', 'success');
+        }
+
+        function atualizarSaldoInicial() {
+            updateFluxoTotals();
+            renderFluxoTable();
+            salvarFluxoAutomatico();
+            mostrarAutoSave();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const saldoInicialInput = document.getElementById('saldoInicial');
+            if (saldoInicialInput) {
+                saldoInicialInput.addEventListener('input', atualizarSaldoInicial);
+            }
+        });
+
+        function carregarResumoAnual() {
+            const ano = document.getElementById('anoResumo').value;
+            const mesesResumoDiv = document.getElementById('mesesResumo');
+            mesesResumoDiv.innerHTML = '';
+
+            const meses = [
+                { num: '01', nome: 'Janeiro' },
+                { num: '02', nome: 'Fevereiro' },
+                { num: '03', nome: 'Março' },
+                { num: '04', nome: 'Abril' },
+                { num: '05', nome: 'Maio' },
+                { num: '06', nome: 'Junho' },
+                { num: '07', nome: 'Julho' },
+                { num: '08', nome: 'Agosto' },
+                { num: '09', nome: 'Setembro' },
+                { num: '10', nome: 'Outubro' },
+                { num: '11', nome: 'Novembro' },
+                { num: '12', nome: 'Dezembro' }
+            ];
+
+            let saldoAcumulado = 0;
+            let saldoFinalAno = 0;
+
+            meses.forEach(mes => {
+                const periodo = `${ano}-${mes.num}`;
+                const data = AppStorage.load(`fluxoCaixa_${periodo}`);
+
+                if (data) {
+                    const saldoFinal = calcularSaldoFinal(data);
+                    saldoAcumulado = saldoFinal;
+                } else {
+                    saldoAcumulado = 0;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'month-summary';
+                div.innerHTML = `
+                    <span class="month-name">${mes.nome} ${ano}</span>
+                    <span class="month-balance ${saldoAcumulado >= 0 ? 'positive' : 'negative'}">
+                        ${formatCurrency(saldoAcumulado)}
+                    </span>
+                `;
+                mesesResumoDiv.appendChild(div);
+
+                if (mes.num === '12') {
+                    saldoFinalAno = saldoAcumulado;
+                }
+            });
+
+            document.getElementById('saldoTotalAno').textContent = formatCurrency(saldoFinalAno);
+            const saldoFinalAnoDiv = document.getElementById('saldoFinalAno');
+            saldoFinalAnoDiv.classList.remove('positive', 'negative');
+            saldoFinalAnoDiv.classList.add(saldoFinalAno >= 0 ? 'positive' : 'negative');
+        }
+
+        function calcularSaldoFinal(data) {
+            if (!data || !data.lancamentos) return 0;
+            
+            const totals = data.lancamentos.reduce((acc, lancamento) => {
+                if (lancamento.tipo === 'Entrada') {
+                    acc.entradas += lancamento.valor;
+                } else if (lancamento.tipo === 'Saída') {
+                    acc.saidas += lancamento.valor;
+                } else if (lancamento.tipo === 'Retirada') {
+                    acc.retiradas += lancamento.valor;
+                }
+                return acc;
+            }, { entradas: 0, saidas: 0, retiradas: 0 });
+
+            return (data.saldoInicial || 0) + totals.entradas - totals.saidas - totals.retiradas;
+        }
+
+        function exportarBackupCompleto() {
+            const backup = {
+                timestamp: new Date().toISOString(),
+                projetos: AppStorage.load('projetos') || [],
+                fluxoCaixa: {}
+            };
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('fluxoCaixa_')) {
+                    backup.fluxoCaixa[key] = AppStorage.load(key);
+                }
+            }
+
+            const json = JSON.stringify(backup, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            
+            const dataHora = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.href = url;
+            link.download = `suite_bolsas_backup_${dataHora}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            mostrarMensagem('✅ Backup exportado com sucesso!', 'success');
+        }
+
+        function confirmarAcao(mensagem, callback) {
+            const overlay = document.getElementById('dialogOverlay');
+            const title = document.getElementById('dialogTitle');
+            const message = document.getElementById('dialogMessage');
+            const confirmBtn = document.getElementById('dialogConfirmBtn');
+            const cancelBtn = document.getElementById('dialogCancelBtn');
+
+            title.textContent = '⚠️ Confirmação';
+            message.textContent = mensagem;
+            confirmBtn.style.display = 'inline-block';
+            cancelBtn.textContent = 'Cancelar';
+
+            confirmBtn.onclick = () => {
+                overlay.classList.remove('active');
+                callback();
+            };
+
+            cancelBtn.onclick = () => {
+                overlay.classList.remove('active');
+            };
+
+            overlay.classList.add('active');
+        }
+
+        function mostrarMensagem(texto, tipo = 'info') {
+            const existingToast = document.querySelector('.message-toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `message-toast ${tipo}`;
+            toast.textContent = texto;
+            
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        
+        // ============================================================
+        // NOVA FUNÇÃO: Exportar Projeto como PDF
+        // ============================================================
+        function exportarProjetoPDF() {
+            if (projetoAtual === null) {
+                mostrarMensagem('❌ Selecione um projeto para exportar!', 'error');
+                return;
+            }
+            
+            const projeto = projetos[projetoAtual];
+            const { jsPDF } = window.jspdf;
+            
+            if (!jsPDF) {
+                mostrarMensagem('❌ Biblioteca PDF não carregada. Recarregue a página.', 'error');
+                return;
+            }
+            
+            const doc = new jsPDF();
+            
+            // Título
+            doc.setFontSize(20);
+            doc.setTextColor(131, 24, 67);
+            doc.text('Suite Bolsas - Lívia Xavier', 105, 20, { align: 'center' });
+            
+            doc.setFontSize(16);
+            doc.setTextColor(0, 0, 0);
+            doc.text(projeto.nome || 'Projeto sem nome', 105, 35, { align: 'center' });
+            
+            // Materiais
+            doc.setFontSize(14);
+            doc.setTextColor(131, 24, 67);
+            doc.text('Materiais:', 20, 50);
+            
+            let y = 60;
+            projeto.materiais.forEach((material, index) => {
+                const subtotal = material.quantidade * material.preco;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                const texto = `${index + 1}. ${material.nome} - ${material.quantidade} ${material.unidade || 'un'} x R$ ${material.preco.toFixed(2)} = R$ ${subtotal.toFixed(2)}`;
+                doc.text(texto, 25, y);
+                y += 7;
+                
+                // Nova página se necessário
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+            });
+            
+            // Custos
+            y += 10;
+            doc.setFontSize(12);
+            doc.setTextColor(131, 24, 67);
+            doc.text('Resumo de Custos:', 20, y);
+            y += 10;
+            
+            const custoMateriais = projeto.materiais.reduce((t, m) => t + (m.quantidade * m.preco), 0);
+            const custoAdm = custoMateriais * ((projeto.custoAdm || 15) / 100);
+            const custoVariavel = custoMateriais * ((projeto.custoVariavel || 10) / 100);
+            const imposto = custoMateriais * ((projeto.imposto || 6) / 100);
+            const custoTotal = custoMateriais + custoAdm + custoVariavel + imposto;
+            const margem = projeto.margemLucro || 2;
+            const precoVenda = custoTotal * margem;
+            const lucro = precoVenda - custoTotal;
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Custo dos Materiais: R$ ${custoMateriais.toFixed(2)}`, 25, y); y += 7;
+            doc.text(`Custo Administrativo (${projeto.custoAdm || 15}%): R$ ${custoAdm.toFixed(2)}`, 25, y); y += 7;
+            doc.text(`Custo Variavel (${projeto.custoVariavel || 10}%): R$ ${custoVariavel.toFixed(2)}`, 25, y); y += 7;
+            doc.text(`Imposto (${projeto.imposto || 6}%): R$ ${imposto.toFixed(2)}`, 25, y); y += 10;
+            
+            doc.setFontSize(12);
+            doc.setTextColor(131, 24, 67);
+            doc.text(`CUSTO TOTAL: R$ ${custoTotal.toFixed(2)}`, 25, y); y += 10;
+            doc.text(`Margem de Lucro: ${margem}x`, 25, y); y += 7;
+            doc.text(`Lucro Estimado: R$ ${lucro.toFixed(2)}`, 25, y); y += 10;
+            doc.setFontSize(14);
+            doc.text(`PRECO DE VENDA: R$ ${precoVenda.toFixed(2)}`, 25, y);
+            
+            // Salvar
+            const nomeArquivo = (projeto.nome || 'projeto').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            doc.save(`${nomeArquivo}.pdf`);
+            mostrarMensagem('✅ PDF exportado com sucesso!', 'success');
+        }
+
+        // ============================================================
+        // NOVA FUNÇÃO: Obter Saldo do Mês Anterior
+        // ============================================================
+        function obterSaldoMesAnterior(periodoAtual) {
+            const [ano, mes] = periodoAtual.split('-').map(Number);
+            
+            // Calcular mês anterior
+            let mesAnterior = mes - 1;
+            let anoAnterior = ano;
+            
+            if (mesAnterior < 1) {
+                mesAnterior = 12;
+                anoAnterior--;
+            }
+            
+            const periodoAnterior = `${anoAnterior}-${String(mesAnterior).padStart(2, '0')}`;
+            const dadosMesAnterior = AppStorage.load(`fluxoCaixa_${periodoAnterior}`);
+            
+            if (dadosMesAnterior) {
+                return calcularSaldoFinal(dadosMesAnterior);
+            }
+            
+            return 0; // Primeiro mês ou mês anterior sem dados
+        }
+
+        // ============================================================
+        // NOVA FUNÇÃO: Importar Saldo do Mês Anterior
+        // ============================================================
+        function importarSaldoMesAnterior() {
+            if (!currentPeriodo) {
+                mostrarMensagem('❌ Selecione um período primeiro!', 'error');
+                return;
+            }
+            
+            const saldoAnterior = obterSaldoMesAnterior(currentPeriodo);
+            
+            if (saldoAnterior === 0) {
+                const [ano, mes] = currentPeriodo.split('-');
+                let mesAnt = parseInt(mes) - 1;
+                let anoAnt = parseInt(ano);
+                if (mesAnt < 1) {
+                    mesAnt = 12;
+                    anoAnt--;
+                }
+                const nomes = ['', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                              'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                mostrarMensagem(`ℹ️ Não há dados para ${nomes[mesAnt]}/${anoAnt}. Saldo zerado.`, 'info');
+            } else {
+                mostrarMensagem(`✅ Saldo de ${formatCurrency(saldoAnterior)} importado!`, 'success');
+            }
+            
+            document.getElementById('saldoInicial').value = saldoAnterior.toFixed(2);
+            fluxoData.saldoInicial = saldoAnterior;
+            updateFluxoTotals();
+            renderFluxoTable();
+            salvarFluxoAutomatico();
+            mostrarAutoSave();
+        }
+
+        // ============================================================
+        // NOVA FUNÇÃO: Filtrar Lançamentos
+        // ============================================================
+        function filtrarLancamentos() {
+            const busca = document.getElementById('buscaFluxo').value.toLowerCase();
+            const tipoFiltro = document.getElementById('filtroTipo').value;
+            
+            const tbody = document.getElementById('fluxoTableBody');
+            const linhas = tbody.getElementsByTagName('tr');
+            
+            let totalVisible = 0;
+            
+            for (let i = 0; i < linhas.length; i++) {
+                const linha = linhas[i];
+                const descricao = linha.cells[1]?.textContent.toLowerCase() || '';
+                const tipo = linha.cells[2]?.textContent || '';
+                
+                const matchBusca = descricao.includes(busca);
+                const matchTipo = tipoFiltro === 'todos' || tipo.includes(tipoFiltro);
+                
+                if (matchBusca && matchTipo) {
+                    linha.style.display = '';
+                    totalVisible++;
+                } else {
+                    linha.style.display = 'none';
+                }
+            }
+            
+            // Mostrar mensagem se não houver resultados
+            if (totalVisible === 0 && fluxoData.lancamentos.length > 0) {
+                mostrarMensagem('🔍 Nenhum lançamento encontrado com esses filtros', 'info');
+            }
+        }
+
+        // ============================================================
+        // NOVA FUNÇÃO: Atualizar Gráfico de Fluxo de Caixa
+        // ============================================================
+        let chartInstance = null;
+        
+        function atualizarGrafico() {
+            const canvas = document.getElementById('fluxoCaixaChart');
+            if (!canvas) return;
+            
+            // Destruir gráfico anterior se existir
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+            
+            // Obter últimos 6 meses
+            const hoje = new Date();
+            const meses = [];
+            const saldos = [];
+            
+            for (let i = 5; i >= 0; i--) {
+                const data = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                const periodo = `${ano}-${mes}`;
+                
+                const nomesMeses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 
+                                   'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                meses.push(`${nomesMeses[data.getMonth()]}/${ano}`);
+                
+                const dados = AppStorage.load(`fluxoCaixa_${periodo}`);
+                const saldo = dados ? calcularSaldoFinal(dados) : 0;
+                saldos.push(saldo);
+            }
+            
+            // Criar gráfico
+            const ctx = canvas.getContext('2d');
+            
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js não carregado');
+                return;
+            }
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Saldo Final (R$)',
+                        data: saldos,
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: '#ec4899',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += 'R$ ' + context.parsed.y.toFixed(2).replace('.', ',');
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return 'R$ ' + value.toFixed(0);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // MODIFICAR carregarPeriodo para auto-importar saldo
+        // ============================================================
+        const carregarPeriodoOriginal = carregarPeriodo;
+        carregarPeriodo = function() {
+            currentPeriodo = document.getElementById('periodoAtual').value;
+            const key = `fluxoCaixa_${currentPeriodo}`;
+            fluxoData = AppStorage.load(key) || { saldoInicial: 0, lancamentos: [] };
+            
+            // NOVO: Auto-calcular saldo inicial do mês anterior
+            if (fluxoData.lancamentos.length === 0) {
+                const saldoAnterior = obterSaldoMesAnterior(currentPeriodo);
+                fluxoData.saldoInicial = saldoAnterior;
+            }
+            
+            document.getElementById('saldoInicial').value = fluxoData.saldoInicial || 0;
+            renderFluxoTable();
+            updateFluxoTotals();
+        };
+
+        // ============================================================
+        // AUTO-EXECUTAR ao carregar Dashboard
+        // ============================================================
+        const showScreenOriginal = showScreen;
+        showScreen = function(screenId) {
+            showScreenOriginal(screenId);
+            
+            if (screenId === 'dashScreen') {
+                setTimeout(atualizarGrafico, 100);
+            }
+        };
+
+        // ============================================================
+        // AUTO-RECALCULAR ao alterar custos indiretos
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const campos = ['custoAdmInput', 'custoVariavelInput', 'impostoInput', 'margemLucroInput'];
+            campos.forEach(campoId => {
+                const campo = document.getElementById(campoId);
+                if (campo) {
+                    campo.addEventListener('input', function() {
+                        calcularCustos();
+                        // Auto-save se houver projeto selecionado
+                        if (projetoAtual !== null) {
+                            setTimeout(() => {
+                                salvarProjetoAutomatico();
+                                mostrarAutoSave();
+                            }, 500);
+                        }
+                    });
+                }
+            });
+        });
+
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+        }
+    
+        // Atualizar função updateFluxoTotals para incluir retiradas
+        if (typeof updateFluxoTotals === 'function') {
+            const originalUpdate = updateFluxoTotals;
+            updateFluxoTotals = function() {
+                let entradas = 0;
+                let saidas = 0;
+                let retiradas = 0;
+                
+                if (fluxoData && fluxoData.lancamentos) {
+                    fluxoData.lancamentos.forEach(lanc => {
+                        if (lanc.tipo === 'entrada') entradas += lanc.valor;
+                        else if (lanc.tipo === 'saida') saidas += lanc.valor;
+                        else if (lanc.tipo === 'retirada') retiradas += lanc.valor;
+                    });
+                }
+                
+                const saldoInicial = fluxoData ? fluxoData.saldoInicial : 0;
+                const saldoFinal = saldoInicial + entradas - saidas - retiradas;
+                
+                const elEntradas = document.getElementById('totalEntradas');
+                const elSaidas = document.getElementById('totalSaidas');
+                const elRetiradas = document.getElementById('totalRetiradas');
+                const elSaldo = document.getElementById('saldoFinal');
+                
+                if (elEntradas) elEntradas.textContent = formatCurrency(entradas);
+                if (elSaidas) elSaidas.textContent = formatCurrency(saidas);
+                if (elRetiradas) elRetiradas.textContent = formatCurrency(retiradas);
+                if (elSaldo) {
+                    elSaldo.textContent = formatCurrency(saldoFinal);
+                    
+                    // Colorir saldo conforme valor
+                    if (saldoFinal < 0) {
+                        elSaldo.style.color = '#dc2626';
+                    } else if (saldoFinal < 500) {
+                        elSaldo.style.color = '#f59e0b';
+                    } else {
+                        elSaldo.style.color = '#059669';
+                    }
+                }
+            };
+        }
+    </script>
+    <script>
+        // Partículas flutuantes sutis
+        (function initParticles(){
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduceMotion) return;
+            const canvas = document.getElementById('particlesCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w, h, dpr;
+            function resize(){
+                dpr = window.devicePixelRatio || 1; w = canvas.clientWidth = window.innerWidth; h = canvas.clientHeight = window.innerHeight; canvas.width = w * dpr; canvas.height = h * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            }
+            window.addEventListener('resize', resize); resize();
+            const count = Math.min(100, Math.floor(w*h/24000));
+            const particles = Array.from({length: count}).map(()=>({
+                x: Math.random()*w,
+                y: Math.random()*h,
+                r: Math.random()*2 + 0.6,
+                vx: (Math.random()-0.5)*0.25,
+                vy: (Math.random()-0.5)*0.25,
+                hue: 280 + Math.random()*120
+            }));
+            function tick(){
+                ctx.clearRect(0,0,w,h);
+                for (const p of particles){
+                    p.x += p.vx; p.y += p.vy;
+                    if (p.x < -10) p.x = w+10; if (p.x > w+10) p.x = -10;
+                    if (p.y < -10) p.y = h+10; if (p.y > h+10) p.y = -10;
+                    ctx.beginPath();
+                    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*4);
+                    grad.addColorStop(0, `hsla(${p.hue}, 80%, 60%, .45)`);
+                    grad.addColorStop(1, 'hsla(0,0%,100%,0)');
+                    ctx.fillStyle = grad;
+                    ctx.arc(p.x, p.y, p.r*4, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(tick);
+            }
+            tick();
+        })();
+
+        // Ripple effect nos botões e elementos clicáveis
+        (function initRipple(){
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (reduceMotion) return;
+            document.addEventListener('click', function(e){
+                const target = e.target.closest('.btn, button, .menu-card');
+                if (!target) return;
+                const rect = target.getBoundingClientRect();
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                const size = Math.max(rect.width, rect.height);
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = (e.clientX - rect.left - size/2) + 'px';
+                ripple.style.top = (e.clientY - rect.top - size/2) + 'px';
+                target.appendChild(ripple);
+                setTimeout(()=> ripple.remove(), 650);
+            });
+        })();
+
+        // Aplicar animação de entrada suave em cards/modais
+        (function enterAnimations(){
+            const animated = document.querySelectorAll('.card, .menu-card, .dialog, .summary-card');
+            animated.forEach(el => el.classList.add('float-up'));
+        })();
+
+        // Utilitário de Loading para botões
+        window.setButtonLoading = function(button, isLoading = true){
+            if (!button) return;
+            if (isLoading) {
+                button.classList.add('loading');
+                button.setAttribute('disabled', 'disabled');
+            } else {
+                button.classList.remove('loading');
+                button.removeAttribute('disabled');
+            }
+        };
+    </script>
+</body>
+</html>
